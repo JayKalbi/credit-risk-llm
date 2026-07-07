@@ -305,7 +305,7 @@ def engineer_features(
             else:
                 print(f"    WARNING: Unknown engineered feature '{name}' — skipping")
                 continue
-            print(f"    ✓ {name} — mean: {df[name].mean():.4f}, "
+            print(f"    [OK] {name} — mean: {df[name].mean():.4f}, "
                   f"nulls: {df[name].isna().sum()}")
         except KeyError as e:
             print(f"    WARNING: Cannot compute '{name}' — missing column {e}")
@@ -366,11 +366,11 @@ def temporal_split(
             split_df.drop(columns=["issue_d"], inplace=True)
 
     print(f"\n  Temporal split:")
-    print(f"    Train (≤ {train_end.date()}): {len(train_df):,} rows "
+    print(f"    Train (<= {train_end.date()}): {len(train_df):,} rows "
           f"({train_df['target'].mean()*100:.1f}% default)")
     print(f"    Val ({val_start.date()} to {val_end.date()}): {len(val_df):,} rows "
           f"({val_df['target'].mean()*100:.1f}% default)")
-    print(f"    Test (≥ {test_start.date()}): {len(test_df):,} rows "
+    print(f"    Test (>= {test_start.date()}): {len(test_df):,} rows "
           f"({test_df['target'].mean()*100:.1f}% default)")
 
     return train_df, val_df, test_df
@@ -458,7 +458,7 @@ def impute_missing(
                               key=lambda x: x[1]["missing_train"], reverse=True)
         for col, stats in sorted_stats[:5]:
             pct = stats["missing_train"] / len(train_df) * 100
-            print(f"      {col}: {stats['missing_train']:,} ({pct:.1f}%) → "
+            print(f"      {col}: {stats['missing_train']:,} ({pct:.1f}%) -> "
                   f"filled with {stats['value']:.2f}")
 
     return train_df, val_df, test_df, imputation_stats
