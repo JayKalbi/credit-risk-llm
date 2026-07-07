@@ -1,0 +1,270 @@
+\documentclass[preprint,12pt]{elsarticle}
+% Target: Finance Research Letters or Expert Systems With Applications
+
+% ── Packages ─────────────────────────────────────────────────
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{multirow}
+\usepackage{subcaption}
+
+% ── Commands ─────────────────────────────────────────────────
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+\newcommand{\PLACEHOLDER}[1]{\textcolor{blue}{\textit{#1}}}
+
+% ── Journal Setup ────────────────────────────────────────────
+\journal{Finance Research Letters}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{HybridCreditLLM: Regulatory-Compliant Credit Risk Assessment via\\
+Late Fusion of Classical ML and Fine-Tuned Large Language Models}
+
+\author[inst1]{Jay Kalbi}
+\address[inst1]{NMIMS University, M.Tech Artificial Intelligence}
+
+\begin{abstract}
+\TODO{Write after results are complete.}
+
+Credit scoring models face a fundamental tension between predictive power and regulatory compliance. Traditional machine learning models (LightGBM, XGBoost) on tabular data offer mathematical explainability required by EU AI Act Article~13 and Basel~III, but ignore valuable unstructured text data. Large Language Models (LLMs) can process this text but remain ``black boxes'' that fail regulatory scrutiny. We propose \textbf{HybridCreditLLM}, a late fusion architecture that combines a LightGBM tabular branch with FinBERT text embeddings and QLoRA-fine-tuned LLaMA-3-8B rationale generation, explicitly designed for EU AI Act compliance. Our approach achieves AUC-ROC of \PLACEHOLDER{X.XX} on LendingClub data (beating the tabular baseline by \PLACEHOLDER{X\%}), while passing a novel three-part explainability audit: faithfulness testing via Kendall's $\tau$, counterfactual explanations via DiCE-ML, and automated hallucination detection. We validate generalizability across three datasets and conduct fairness audits satisfying ECOA standards. To our knowledge, this is the first credit risk system to jointly optimize predictive performance, multi-modal fusion, and explicit regulatory compliance mapping.
+
+\end{abstract}
+
+\begin{keyword}
+Credit Risk \sep Large Language Models \sep Explainable AI \sep EU AI Act \sep Late Fusion \sep QLoRA
+\end{keyword}
+
+\end{frontmatter}
+
+% ================================================================
+% 1. INTRODUCTION
+% ================================================================
+\section{Introduction}
+\label{sec:introduction}
+
+\TODO{Draft in Week 1--2. Structure: Problem → Gap → Solution → Contributions.}
+
+Credit risk assessment is a cornerstone of modern financial systems. Accurate prediction of loan defaults enables financial institutions to price risk appropriately, allocate capital efficiently, and comply with regulatory requirements such as Basel~III capital adequacy standards. Traditionally, credit scoring has relied on tabular machine learning models---Logistic Regression, Gradient Boosting Machines (LightGBM, XGBoost)---applied to structured borrower data including FICO scores, debt-to-income ratios, and payment histories.
+
+However, financial institutions accumulate vast quantities of \emph{unstructured} text data---loan application descriptions, employment narratives, analyst notes, and regulatory filings---that remain largely untapped by conventional models. The emergence of Large Language Models (LLMs) presents an opportunity to extract predictive signal from this text. Yet, deploying LLMs in high-stakes financial decisions raises critical challenges:
+
+\begin{enumerate}
+    \item \textbf{The Black Box Problem:} LLMs lack the mathematical interpretability required by EU AI Act Article~13 and the Equal Credit Opportunity Act (ECOA).
+    \item \textbf{Hallucination Risk:} LLMs may fabricate financial facts in their explanations, creating legal liability.
+    \item \textbf{The Modality Silo:} Existing approaches process tabular and text data independently, missing cross-modal interactions.
+\end{enumerate}
+
+In this paper, we propose \textbf{HybridCreditLLM}, a regulatory-compliant architecture that addresses these gaps through late fusion of classical ML and fine-tuned LLMs.
+
+\paragraph{Contributions.} This paper makes exactly four contributions:
+\begin{enumerate}
+    \item We propose a \textbf{late fusion architecture} that combines LightGBM tabular predictions with FinBERT text embeddings while preserving per-branch explainability.
+    \item We introduce a \textbf{three-part explainability audit} (faithfulness, completeness, hallucination detection) that measures whether LLM explanations align with mathematical attributions.
+    \item We demonstrate \textbf{multi-dataset generalizability} across LendingClub (consumer), Home Credit (out-of-sample), and German Credit (fairness), with an optional SEC EDGAR corporate extension.
+    \item We provide the first \textbf{explicit EU AI Act compliance mapping} for an LLM-augmented credit scoring system, covering Articles 9--15 and 71.
+\end{enumerate}
+
+
+% ================================================================
+% 2. LITERATURE REVIEW
+% ================================================================
+\section{Literature Review}
+\label{sec:literature}
+
+\TODO{Draft in Week 1--2. Cover these areas:}
+
+\subsection{Traditional Credit Scoring}
+\PLACEHOLDER{Review of LR, GBDT, XGBoost in credit risk. Key papers: Lessmann et al. (2015), Baesens et al. (2003).}
+
+\subsection{Deep Learning for Credit Risk}
+\PLACEHOLDER{Neural networks, autoencoders for credit scoring. Key papers.}
+
+\subsection{LLMs in Finance}
+\PLACEHOLDER{FinBERT, BloombergGPT, LLM applications in NLP-driven finance. Gap: no regulatory compliance.}
+
+\subsection{Explainable AI in Finance}
+\PLACEHOLDER{SHAP, LIME, counterfactuals. Gap: no faithfulness audit for LLM explanations.}
+
+\subsection{Regulatory Requirements}
+\PLACEHOLDER{EU AI Act, Basel III, ECOA requirements for AI systems.}
+
+
+% ================================================================
+% 3. METHODOLOGY
+% ================================================================
+\section{Methodology}
+\label{sec:methodology}
+
+\TODO{Draft in Weeks 5--6. This is the core technical section.}
+
+\subsection{Problem Formulation}
+\PLACEHOLDER{Binary classification: $P(\text{default} \mid \mathbf{x}_{\text{tab}}, \mathbf{x}_{\text{text}})$}
+
+\subsection{Data Description}
+
+\begin{table}[h]
+\centering
+\caption{Dataset Statistics}
+\label{tab:datasets}
+\begin{tabular}{lrrrl}
+\toprule
+\textbf{Dataset} & \textbf{Rows} & \textbf{Features} & \textbf{Default \%} & \textbf{Purpose} \\
+\midrule
+LendingClub & \PLACEHOLDER{X} & \PLACEHOLDER{X} & \PLACEHOLDER{X\%} & Primary training \\
+Home Credit & \PLACEHOLDER{X} & \PLACEHOLDER{X} & \PLACEHOLDER{X\%} & OOS test \\
+German Credit & 1,000 & 20 & \PLACEHOLDER{X\%} & Fairness audit \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Tabular Branch}
+\PLACEHOLDER{Feature selection (25-35 features), engineering, imputation, SMOTETomek, LightGBM architecture.}
+
+\subsection{Text Branch}
+\PLACEHOLDER{Text cleaning, FinBERT embedding extraction, text classifier architecture.}
+
+\subsection{LLM Rationale Generation}
+\PLACEHOLDER{QLoRA fine-tuning of LLaMA-3-8B, prompt template, training data construction.}
+
+\subsection{Late Fusion Architecture}
+
+\begin{figure}[h]
+\centering
+\TODO{Insert architecture diagram}
+\caption{HybridCreditLLM Late Fusion Architecture}
+\label{fig:architecture}
+\end{figure}
+
+\PLACEHOLDER{Meta-learner (LR) combining $p_{\text{tabular}}$ and $p_{\text{text}}$.}
+
+\subsection{Explainability Framework}
+\PLACEHOLDER{SHAP, Kendall's $\tau$ faithfulness, DiCE counterfactuals, hallucination detection.}
+
+
+% ================================================================
+% 4. EXPERIMENTS & RESULTS
+% ================================================================
+\section{Experiments and Results}
+\label{sec:results}
+
+\TODO{Fill in Week 10 with final numbers.}
+
+\subsection{Experimental Setup}
+\PLACEHOLDER{Hardware (Kaggle T4), hyperparameters, evaluation protocol.}
+
+\subsection{Main Results}
+
+\begin{table}[h]
+\centering
+\caption{Main Results: Model Comparison on LendingClub Test Set (2017--2018)}
+\label{tab:main_results}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Model} & \textbf{AUC-ROC} & \textbf{PR-AUC} & \textbf{KS Stat} & \textbf{Brier} & \textbf{F1 (Def)} \\
+\midrule
+Logistic Regression & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} \\
+XGBoost             & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} \\
+LightGBM            & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} \\
+FinBERT (text only) & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} \\
+\textbf{HybridCreditLLM} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} & \PLACEHOLDER{--} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Ablation Study}
+
+\begin{table}[h]
+\centering
+\caption{Ablation Study: Component Contributions}
+\label{tab:ablation}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Configuration} & \textbf{AUC-ROC} & \textbf{$\Delta$} \\
+\midrule
+Tabular only (LightGBM) & \PLACEHOLDER{--} & baseline \\
+Text only (FinBERT)      & \PLACEHOLDER{--} & \PLACEHOLDER{--} \\
+Tabular + Text (Hybrid)  & \PLACEHOLDER{--} & \PLACEHOLDER{--} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Faithfulness Audit}
+
+\begin{table}[h]
+\centering
+\caption{Faithfulness Audit: LLM Rationale vs. SHAP Attribution Alignment}
+\label{tab:faithfulness}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Value} & \textbf{Target} \\
+\midrule
+Kendall's $\tau$       & \PLACEHOLDER{--} & $\geq 0.50$ \\
+Top-3 Feature Overlap  & \PLACEHOLDER{--} & -- \\
+Hallucination Rate     & \PLACEHOLDER{--} & $\leq 5\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Fairness Audit}
+
+\begin{table}[h]
+\centering
+\caption{Fairness Audit on German Credit Dataset}
+\label{tab:fairness}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Attribute} & \textbf{Disparate Impact} & \textbf{Threshold} & \textbf{Status} \\
+\midrule
+Age    & \PLACEHOLDER{--} & $\geq 0.80$ & \PLACEHOLDER{--} \\
+Gender & \PLACEHOLDER{--} & $\geq 0.80$ & \PLACEHOLDER{--} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Out-of-Sample Generalization}
+\PLACEHOLDER{Home Credit results showing cross-dataset performance.}
+
+
+% ================================================================
+% 5. DISCUSSION
+% ================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\TODO{Write in Week 10.}
+
+\subsection{Key Findings}
+\PLACEHOLDER{What worked, what didn't, unexpected results.}
+
+\subsection{EU AI Act Compliance Mapping}
+\PLACEHOLDER{Map each output to specific EU AI Act articles.}
+
+\subsection{Limitations}
+\PLACEHOLDER{Desc column sparsity, T4 GPU constraints, temporal distribution shift.}
+
+\subsection{Future Work}
+\PLACEHOLDER{Full corporate credit extension, real-time deployment, model monitoring.}
+
+
+% ================================================================
+% 6. CONCLUSION
+% ================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+\TODO{Write in Week 10. Summarize contributions and impact.}
+
+
+% ================================================================
+% REFERENCES
+% ================================================================
+\bibliographystyle{elsarticle-num}
+\bibliography{references}
+
+\end{document}

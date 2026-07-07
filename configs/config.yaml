@@ -1,0 +1,224 @@
+# ============================================================================
+# HybridCreditLLM — Master Configuration
+# ============================================================================
+# All hyperparameters, paths, and constants in one place for reproducibility.
+# ============================================================================
+
+# ── Paths ────────────────────────────────────────────────────
+paths:
+  raw_data: "data/raw"
+  processed_data: "data/processed"
+  embeddings: "data/embeddings"
+  models: "models"
+  results: "results"
+  figures: "figures"
+
+# ── Datasets ─────────────────────────────────────────────────
+datasets:
+  lending_club:
+    file: "accepted_2007_to_2018Q4.csv.gz"
+    target_col: "loan_status"
+    # Temporal split boundaries (by issue_d column)
+    train_end: "2015-12-31"
+    val_start: "2016-01-01"
+    val_end: "2016-12-31"
+    test_start: "2017-01-01"
+    # Text columns (fallback if desc is empty)
+    text_primary: "desc"
+    text_fallback:
+      - "emp_title"
+      - "purpose"
+      - "title"
+
+  home_credit:
+    file: "HC_application_train.csv"
+    target_col: "TARGET"
+
+  german_credit:
+    file: "german_credit.data"
+    # Used only for fairness audit
+
+# ── Target Variable Mapping ──────────────────────────────────
+# LendingClub loan_status → binary
+target_mapping:
+  default:  # Label = 1
+    - "Charged Off"
+    - "Default"
+    - "Late (31-120 days)"
+    - "Does not meet the credit policy. Status:Charged Off"
+  non_default:  # Label = 0
+    - "Fully Paid"
+    - "Does not meet the credit policy. Status:Fully Paid"
+  drop:  # Ambiguous — remove from dataset
+    - "Current"
+    - "In Grace Period"
+    - "Late (16-30 days)"
+    - "Issued"
+
+# ── Core Tabular Features (25-35) ────────────────────────────
+core_features:
+  numeric:
+    - "loan_amnt"
+    - "funded_amnt"
+    - "int_rate"
+    - "installment"
+    - "annual_inc"
+    - "dti"
+    - "delinq_2yrs"
+    - "fico_range_low"
+    - "fico_range_high"
+    - "inq_last_6mths"
+    - "open_acc"
+    - "pub_rec"
+    - "revol_bal"
+    - "revol_util"
+    - "total_acc"
+    - "out_prncp"
+    - "total_pymnt"
+    - "total_rec_prncp"
+    - "total_rec_int"
+    - "last_pymnt_amnt"
+    - "tot_cur_bal"
+    - "total_rev_hi_lim"
+    - "mo_sin_old_rev_tl_op"
+    - "bc_util"
+    - "num_actv_rev_tl"
+
+  categorical:
+    - "term"
+    - "grade"
+    - "sub_grade"
+    - "emp_length"
+    - "home_ownership"
+    - "verification_status"
+    - "purpose"
+    - "addr_state"
+    - "application_type"
+
+# ── Engineered Features ──────────────────────────────────────
+engineered_features:
+  - name: "loan_to_income"
+    formula: "loan_amnt / (annual_inc + 1)"
+  - name: "payment_burden"
+    formula: "installment / (annual_inc / 12 + 1)"
+  - name: "credit_util_dti_interaction"
+    formula: "revol_util * dti"
+  - name: "fico_mid"
+    formula: "(fico_range_low + fico_range_high) / 2"
+
+# ── Classical ML ─────────────────────────────────────────────
+classical_ml:
+  random_state: 42
+  test_size: 0.2  # Only for non-temporal splits (e.g., German Credit)
+
+  lightgbm:
+    n_estimators: 1000
+    learning_rate: 0.05
+    max_depth: 7
+    num_leaves: 63
+    subsample: 0.8
+    colsample_bytree: 0.8
+    early_stopping_rounds: 50
+    class_weight: "balanced"
+
+  xgboost:
+    n_estimators: 1000
+    learning_rate: 0.05
+    max_depth: 6
+    subsample: 0.8
+    colsample_bytree: 0.8
+    early_stopping_rounds: 50
+    scale_pos_weight: "auto"  # Computed from class ratio
+
+  logistic:
+    max_iter: 1000
+    class_weight: "balanced"
+    C: 1.0
+
+  optuna:
+    n_trials: 50
+    timeout: 3600  # 1 hour max
+
+# ── Imbalance Handling ───────────────────────────────────────
+imbalance:
+  method: "SMOTETomek"
+  random_state: 42
+  # Applied ONLY to training set
+
+# ── FinBERT Embeddings ───────────────────────────────────────
+finbert:
+  model_name: "ProsusAI/finbert"
+  embedding_dim: 768
+  batch_size: 64
+  max_length: 128
+  device: "cuda"  # Override to "cpu" for local
+
+# ── LLaMA QLoRA Fine-Tuning ──────────────────────────────────
+qlora:
+  base_model: "unsloth/llama-3-8b-bnb-4bit"
+  fallback_model: "unsloth/mistral-7b-bnb-4bit"
+  max_seq_length: 512
+  load_in_4bit: true
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_compute_dtype: "float16"
+
+  lora:
+    r: 16
+    lora_alpha: 32
+    target_modules:
+      - "q_proj"
+      - "k_proj"
+      - "v_proj"
+      - "o_proj"
+    lora_dropout: 0.05
+    bias: "none"
+    task_type: "CAUSAL_LM"
+
+  training:
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 8
+    num_train_epochs: 3
+    learning_rate: 2.0e-4
+    warmup_ratio: 0.03
+    weight_decay: 0.01
+    optim: "paged_adamw_8bit"
+    fp16: true
+    gradient_checkpointing: true
+    save_strategy: "epoch"
+    logging_steps: 25
+    max_grad_norm: 0.3
+
+# ── Late Fusion ──────────────────────────────────────────────
+fusion:
+  method: "logistic_regression"
+  inputs:
+    - "p_tabular"   # LightGBM probability
+    - "p_text"      # FinBERT-based classifier probability
+
+# ── Target Metrics ───────────────────────────────────────────
+target_metrics:
+  auc_roc: 0.82
+  pr_auc: 0.65
+  ks_stat: 0.40
+  brier_score: 0.12   # Must be BELOW this
+  f1_default: 0.70
+
+# ── Explainability ───────────────────────────────────────────
+xai:
+  shap:
+    max_samples: 10000  # For computational feasibility
+    plot_top_n: 20
+  dice:
+    num_counterfactuals: 5
+    diversity_weight: 1.0
+  faithfulness:
+    metric: "kendall_tau"
+    threshold: 0.50  # Target alignment score
+
+# ── Fairness ─────────────────────────────────────────────────
+fairness:
+  dataset: "german_credit"
+  protected_attributes:
+    - "age"
+    - "sex"
+  disparate_impact_threshold: 0.80  # ECOA requirement

@@ -29,6 +29,7 @@ build/
 .venv/
 venv/
 env/
+credit_risk_llm_venv/
 
 # ── Jupyter ───────────────────────────────────────────────
 .ipynb_checkpoints/
