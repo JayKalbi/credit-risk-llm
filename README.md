@@ -68,7 +68,7 @@ credit_risk_llm/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<YOUR_USERNAME>/credit-risk-llm.git
+git clone https://github.com/JayKalbi/credit-risk-llm.git
 cd credit-risk-llm
 
 # Create virtual environment

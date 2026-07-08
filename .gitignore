@@ -30,6 +30,7 @@ build/
 venv/
 env/
 credit_risk_llm_venv/
+paper/
 
 # ── Jupyter ───────────────────────────────────────────────
 .ipynb_checkpoints/
