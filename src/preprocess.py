@@ -373,6 +373,17 @@ def temporal_split(
     print(f"    Test (>= {test_start.date()}): {len(test_df):,} rows "
           f"({test_df['target'].mean()*100:.1f}% default)")
 
+    if len(test_df) == 0:
+        print("\n  WARNING: Temporal split yielded empty test set (likely due to nrows limit).")
+        print("  Falling back to random split (80/10/10)...")
+        from sklearn.model_selection import train_test_split
+        # All data is in train_df currently
+        temp_df, test_df = train_test_split(train_df, test_size=0.1, random_state=42)
+        train_df, val_df = train_test_split(temp_df, test_size=0.1111, random_state=42) # 0.1111 of 0.9 is ~0.1
+        print(f"    New Train: {len(train_df):,} rows")
+        print(f"    New Val:   {len(val_df):,} rows")
+        print(f"    New Test:  {len(test_df):,} rows")
+
     return train_df, val_df, test_df
 
 
@@ -608,6 +619,7 @@ def save_processed_data(
     config: dict,
     encoding_maps: Optional[dict] = None,
     imputation_stats: Optional[dict] = None,
+    text_dfs: Optional[Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]] = None,
     suffix: str = "",
 ) -> None:
     """Save processed splits to data/processed/.
@@ -645,6 +657,13 @@ def save_processed_data(
     if imputation_stats:
         with open(os.path.join(save_dir, "imputation_stats.pkl"), "wb") as f:
             pickle.dump(imputation_stats, f)
+
+    if text_dfs is not None:
+        text_train, text_val, text_test = text_dfs
+        text_train.to_parquet(os.path.join(save_dir, f"text_train{suffix}.parquet"))
+        text_val.to_parquet(os.path.join(save_dir, f"text_val{suffix}.parquet"))
+        text_test.to_parquet(os.path.join(save_dir, f"text_test{suffix}.parquet"))
+        print(f"    Saved text_dfs to text_train{suffix}.parquet, etc.")
 
     print(f"\n  Saved processed data to {save_dir}/")
     print(f"    X_train{suffix}: {X_train.shape}")
@@ -757,6 +776,13 @@ class PreprocessingPipeline:
             train_df, val_df, test_df, self.config
         )
 
+        # Extract text_dfs BEFORE categorical encoding (which changes strings to ints)
+        text_dfs = (
+            train_df[text_cols].copy(),
+            val_df[text_cols].copy(),
+            test_df[text_cols].copy()
+        )
+
         # 7. Encode categoricals
         train_df, val_df, test_df, self.encoding_maps = encode_categoricals(
             train_df, val_df, test_df, self.config
@@ -777,6 +803,7 @@ class PreprocessingPipeline:
             "encoding_maps": self.encoding_maps,
             "imputation_stats": self.imputation_stats,
             "text_cols": text_cols,
+            "text_dfs": text_dfs,
         }
 
         # 9. Optional SMOTETomek
@@ -794,6 +821,7 @@ class PreprocessingPipeline:
                 self.config,
                 encoding_maps=self.encoding_maps,
                 imputation_stats=self.imputation_stats,
+                text_dfs=text_dfs,
             )
             if apply_smote:
                 save_processed_data(
