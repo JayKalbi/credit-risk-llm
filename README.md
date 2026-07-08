@@ -1,6 +1,6 @@
 # 🏦 Credit Risk Assessment with LLM-Enhanced Features
 
-> **NMIMS M.Tech AI — Capstone Project**
+> **Independent Research Project**
 > Enhancing traditional credit scoring with Large Language Model embeddings and explainable AI.
 
 ---
@@ -84,7 +84,7 @@ python 01_download.py
 
 ## 📄 License
 
-This project is part of academic coursework at NMIMS.
+This project is an independent research study on hybrid credit risk assessment.
 
 ---
 
