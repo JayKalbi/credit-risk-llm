@@ -88,4 +88,4 @@ This project is part of academic coursework at NMIMS.
 
 ---
 
-*⏳ Project Status: **Setup Phase** — Awaiting architecture decisions from research guides.*
+*🚀 Project Status: **Phase 1 (Tabular Baselines) Complete** — Transitioning to Phase 2 (Text Pipeline & LLM Finetuning).*
