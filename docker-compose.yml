@@ -1,0 +1,31 @@
+# ============================================================================
+# Hybrid RAG Engine — Docker Compose
+# ============================================================================
+# Usage:
+#   docker compose up --build        # Build and start
+#   docker compose up -d             # Start in background
+#   docker compose logs -f app       # Follow logs
+# ============================================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-5000}:5000"
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    volumes:
+      # Persist vector stores and indices across restarts
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # ML models take time to load

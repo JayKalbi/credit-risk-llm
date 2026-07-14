@@ -1,21 +1,24 @@
-# ── Data files (too large for GitHub) ──────────────────────
+# ── Data files & indices ──────────────────────────────────────
 data/raw/
 data/processed/*.csv
 data/processed/*.parquet
 data/embeddings/*.npy
 data/embeddings/*.pt
+data/chroma_db/
+data/bm25_index.pkl
+*.pkl
 
-# ── Model artifacts ───────────────────────────────────────
+# ── Model artifacts ───────────────────────────────────────────
 models/
 *.bin
 *.safetensors
 *.ckpt
 *.h5
 
-# ── Results (regenerable) ─────────────────────────────────
+# ── Results (regenerable) ─────────────────────────────────────
 results/
 
-# ── Python ────────────────────────────────────────────────
+# ── Python ────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -25,35 +28,43 @@ build/
 .eggs/
 *.egg
 
-# ── Virtual environments ─────────────────────────────────
+# ── Virtual environments ─────────────────────────────────────
 .venv/
 venv/
 env/
 credit_risk_llm_venv/
-paper/
 
-# ── Jupyter ───────────────────────────────────────────────
+# ── Jupyter ───────────────────────────────────────────────────
 .ipynb_checkpoints/
 *.ipynb_metadata/
 
-# ── IDE ───────────────────────────────────────────────────
+# ── IDE ───────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# ── OS ────────────────────────────────────────────────────
+# ── OS ────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# ── Misc ──────────────────────────────────────────────────
+# ── Misc ──────────────────────────────────────────────────────
 *.log
 *.zip
 *.gz
 *.tar
 .env
 wandb/
+paper/
 
-# ── PDFs (reference guides, not code) ─────────────────────
-*.pdf
+# ── PDFs (source documents — too large for Git) ──────────────
+# data/documents/*.pdf
+
+# ── Docker ────────────────────────────────────────────────────
+.dockerignore
+
+# ── Coverage reports ─────────────────────────────────────────
+htmlcov/
+.coverage
+coverage.xml
