@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hybrid-rag-engine"
+version = "1.0.0"
+description = "Enterprise Hybrid RAG Engine with Reciprocal Rank Fusion and Cross-Encoder Reranking for SEC 10-K Financial Document Q&A"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Jay Kalbi"},
+]
+keywords = ["rag", "retrieval-augmented-generation", "nlp", "finance", "sec-filings"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    # Document Parsing & Ingestion
+    "pypdf>=4.0,<5.0",
+    "beautifulsoup4>=4.12,<5.0",
+    "unstructured>=0.12,<1.0",
+    # RAG Framework (LangChain)
+    "langchain>=0.1.0,<1.0",
+    "langchain-core>=0.1.0,<1.0",
+    "langchain-community>=0.0.10,<1.0",
+    "langchain-text-splitters>=0.0.1,<1.0",
+    # Dense Retrieval (Vector Store & Embeddings)
+    "chromadb>=0.4.0,<1.0",
+    "langchain-chroma>=0.1.0,<1.0",
+    "sentence-transformers>=2.3.0,<4.0",
+    # Sparse Retrieval (Keyword)
+    "rank-bm25>=0.2.2,<1.0",
+    # LLM Integration
+    "groq>=0.4.2,<1.0",
+    "langchain-groq>=0.0.1,<1.0",
+    # Web Application & API
+    "flask>=3.0.0,<4.0",
+    "flask-cors>=4.0.0,<6.0",
+    "waitress>=3.0.0,<4.0",
+    # Utilities
+    "pandas>=2.0,<3.0",
+    "numpy>=1.24,<3.0",
+    "python-dotenv>=1.0,<2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+rag-ingest = "src.ingestion.ingest_pipeline:main"
+
+[project.urls]
+Repository = "https://github.com/JayKalbi/hybrid-rag-engine"
+
+# ── Tool Configuration ──────────────────────────────────────────────
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "DTZ", "T20", "ICN"]
+ignore = ["S101", "T201"]  # Allow assert in tests, print in CLI scripts
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "slow: marks tests that are slow (e.g., load ML models)",
+    "integration: marks integration tests requiring external services",
+]
