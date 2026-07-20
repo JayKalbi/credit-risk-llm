@@ -6,7 +6,6 @@ chunks whose meaning is closest to the query.
 """
 
 import os
-from typing import List
 
 from langchain_chroma import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -49,7 +48,7 @@ class DenseRetriever:
             embedding_function=self.embeddings,
         )
 
-    def retrieve(self, query: str, top_k: int | None = None) -> List[Document]:
+    def retrieve(self, query: str, top_k: int | None = None) -> list[Document]:
         """
         Perform similarity search and return the top-k matching chunks.
 
@@ -57,11 +56,9 @@ class DenseRetriever:
         """
         k = top_k or self.top_k
 
-        results = self.vectorstore.similarity_search_with_relevance_scores(
-            query, k=k
-        )
+        results = self.vectorstore.similarity_search_with_relevance_scores(query, k=k)
 
-        documents: List[Document] = []
+        documents: list[Document] = []
         for doc, score in results:
             doc.metadata["dense_score"] = score
             documents.append(doc)

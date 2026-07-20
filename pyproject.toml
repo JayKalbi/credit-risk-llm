@@ -77,7 +77,12 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "DTZ", "T20", "ICN"]
-ignore = ["S101", "T201"]  # Allow assert in tests, print in CLI scripts
+ignore = ["S101", "T201", "S104"]  # Allow assert in tests, print in CLI, bind-all-interfaces
+
+[tool.ruff.lint.per-file-ignores]
+"src/generation/generator.py" = ["E501"]  # LLM prompt templates have long lines by design
+"src/evaluation/golden_dataset.py" = ["E501"]  # LLM prompt templates
+"src/evaluation/evaluator.py" = ["E501"]  # LLM prompt templates
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]

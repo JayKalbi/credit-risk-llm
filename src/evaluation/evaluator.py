@@ -9,9 +9,8 @@ Uses a stronger model (Llama 3.3 70B) to evaluate a weaker model's
 """
 
 import json
-import os
 import time
-from typing import Any, Dict, List
+from typing import Any
 
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
@@ -56,9 +55,7 @@ class RAGEvaluator:
         load_dotenv()
         api_key = settings.llm.api_key
 
-        logger.info(
-            "Initializing Judge LLM (%s)", settings.llm.judge_model_name
-        )
+        logger.info("Initializing Judge LLM (%s)", settings.llm.judge_model_name)
         self.judge_llm = ChatGroq(
             temperature=0.0,
             model_name=settings.llm.judge_model_name,
@@ -66,7 +63,7 @@ class RAGEvaluator:
         )
         self.eval_prompt = _EVAL_PROMPT
 
-    def evaluate(self) -> Dict[str, Any]:
+    def evaluate(self) -> dict[str, Any]:
         """
         Run evaluation across the golden dataset.
 
@@ -74,7 +71,7 @@ class RAGEvaluator:
         """
         logger.info("Loading golden dataset from %s", self.dataset_path)
 
-        with open(self.dataset_path, "r", encoding="utf-8") as f:
+        with open(self.dataset_path, encoding="utf-8") as f:
             dataset = json.load(f)
 
         if not dataset:
@@ -83,7 +80,7 @@ class RAGEvaluator:
 
         total_relevance = 0
         total_accuracy = 0
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
         errors = 0
 
         logger.info("Evaluating %d Q&A pairs", len(dataset))
@@ -112,9 +109,7 @@ class RAGEvaluator:
                 json_start = judge_response.find("{")
                 json_end = judge_response.rfind("}") + 1
                 if json_start == -1 or json_end == 0:
-                    raise ValueError(
-                        f"No JSON found in judge response: {judge_response[:100]}"
-                    )
+                    raise ValueError(f"No JSON found in judge response: {judge_response[:100]}")
 
                 judge_json = json.loads(judge_response[json_start:json_end])
 
@@ -124,26 +119,28 @@ class RAGEvaluator:
                 total_relevance += rel
                 total_accuracy += acc
 
-                results.append({
-                    "question": question,
-                    "relevance": rel,
-                    "accuracy": acc,
-                    "generated_answer": generated_answer[:300],
-                })
+                results.append(
+                    {
+                        "question": question,
+                        "relevance": rel,
+                        "accuracy": acc,
+                        "generated_answer": generated_answer[:300],
+                    }
+                )
 
                 logger.info("  → Relevance: %d | Accuracy: %d", rel, acc)
 
             except Exception:
                 errors += 1
-                logger.error(
-                    "  → Failed to evaluate question %d", i + 1, exc_info=True
+                logger.error("  → Failed to evaluate question %d", i + 1, exc_info=True)
+                results.append(
+                    {
+                        "question": question,
+                        "relevance": 0,
+                        "accuracy": 0,
+                        "error": True,
+                    }
                 )
-                results.append({
-                    "question": question,
-                    "relevance": 0,
-                    "accuracy": 0,
-                    "error": True,
-                })
 
             # Respect Groq rate limits with backoff
             time.sleep(3)

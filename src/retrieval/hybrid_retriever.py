@@ -9,7 +9,6 @@ Implements a production-grade retrieval pipeline:
 """
 
 import time
-from typing import Dict, List
 
 from langchain_core.documents import Document
 
@@ -39,15 +38,11 @@ class HybridRetriever:
         self.final_top_k = final_top_k or settings.retrieval.final_top_k
         self.rerank_candidates = settings.retrieval.rerank_candidates
 
-        self.dense_retriever = DenseRetriever(
-            top_k=settings.retrieval.dense_top_k
-        )
-        self.sparse_retriever = SparseRetriever(
-            top_k=settings.retrieval.sparse_top_k
-        )
+        self.dense_retriever = DenseRetriever(top_k=settings.retrieval.dense_top_k)
+        self.sparse_retriever = SparseRetriever(top_k=settings.retrieval.sparse_top_k)
         self.reranker = CrossEncoderReranker(top_k=self.final_top_k)
 
-    def retrieve(self, query: str) -> Dict:
+    def retrieve(self, query: str) -> dict:
         """
         Execute the full hybrid retrieval pipeline.
 
@@ -68,15 +63,11 @@ class HybridRetriever:
 
         # Stage 2: Reciprocal Rank Fusion
         fused_docs = self._reciprocal_rank_fusion(dense_docs, sparse_docs)
-        logger.info(
-            "Stage 2 — RRF fusion: %d unique candidates", len(fused_docs)
-        )
+        logger.info("Stage 2 — RRF fusion: %d unique candidates", len(fused_docs))
 
         # Stage 3: Cross-Encoder reranking (on top N candidates)
         candidates = fused_docs[: self.rerank_candidates]
-        final_docs = self.reranker.rerank(
-            query, candidates, top_k=self.final_top_k
-        )
+        final_docs = self.reranker.rerank(query, candidates, top_k=self.final_top_k)
 
         elapsed_ms = (time.time() - start) * 1000
         logger.info(
@@ -98,9 +89,9 @@ class HybridRetriever:
 
     def _reciprocal_rank_fusion(
         self,
-        dense_docs: List[Document],
-        sparse_docs: List[Document],
-    ) -> List[Document]:
+        dense_docs: list[Document],
+        sparse_docs: list[Document],
+    ) -> list[Document]:
         """
         Merge two ranked lists using Reciprocal Rank Fusion.
 
@@ -108,14 +99,13 @@ class HybridRetriever:
         document appears.  Constant k (default 60) controls how
         much weight is given to lower-ranked items.
         """
-        doc_map: Dict[str, Document] = {}
-        rrf_scores: Dict[str, float] = {}
+        doc_map: dict[str, Document] = {}
+        rrf_scores: dict[str, float] = {}
 
         def _doc_id(doc: Document) -> str:
             return doc.metadata.get(
                 "content_hash",
-                f"{doc.metadata.get('filename', 'unknown')}"
-                f"_{doc.metadata.get('chunk_index', 0)}",
+                f"{doc.metadata.get('filename', 'unknown')}_{doc.metadata.get('chunk_index', 0)}",
             )
 
         # Accumulate RRF scores from dense rankings
@@ -133,11 +123,9 @@ class HybridRetriever:
             rrf_scores[did] += 1.0 / (self.rrf_k + rank + 1)
 
         # Sort by combined RRF score (descending)
-        sorted_ids = sorted(
-            rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True
-        )
+        sorted_ids = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)
 
-        merged: List[Document] = []
+        merged: list[Document] = []
         for did in sorted_ids:
             doc = doc_map[did]
             doc.metadata["rrf_score"] = rrf_scores[did]

@@ -7,7 +7,6 @@ chunks that share the most query terms.
 
 import os
 import pickle
-from typing import List
 
 from langchain_core.documents import Document
 
@@ -47,13 +46,11 @@ class SparseRetriever:
         with open(self.bm25_path, "rb") as f:
             data = pickle.load(f)  # noqa: S301 — trusted local file
             self.bm25 = data["bm25"]
-            self.chunks: List[Document] = data["chunks"]
+            self.chunks: list[Document] = data["chunks"]
 
-        logger.info(
-            "BM25 index loaded: %d documents in corpus", len(self.chunks)
-        )
+        logger.info("BM25 index loaded: %d documents in corpus", len(self.chunks))
 
-    def retrieve(self, query: str, top_k: int | None = None) -> List[Document]:
+    def retrieve(self, query: str, top_k: int | None = None) -> list[Document]:
         """
         Perform keyword search and return the top-k matching chunks.
 
@@ -68,18 +65,14 @@ class SparseRetriever:
         scores = self.bm25.get_scores(tokenized_query)
 
         # Sort by descending score and take top-k
-        top_indices = sorted(
-            range(len(scores)), key=lambda i: scores[i], reverse=True
-        )[:k]
+        top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:k]
 
-        documents: List[Document] = []
+        documents: list[Document] = []
         for i in top_indices:
             if scores[i] > 0:
                 doc = self.chunks[i]
                 doc.metadata["sparse_score"] = float(scores[i])
                 documents.append(doc)
 
-        logger.debug(
-            "Sparse retrieval returned %d results for query", len(documents)
-        )
+        logger.debug("Sparse retrieval returned %d results for query", len(documents))
         return documents

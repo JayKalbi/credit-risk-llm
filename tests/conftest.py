@@ -8,12 +8,9 @@ for unit and integration tests.
 import os
 import tempfile
 from pathlib import Path
-from typing import List
-from unittest.mock import MagicMock, patch
 
 import pytest
 from langchain_core.documents import Document
-
 
 # ── Environment Setup ───────────────────────────────────────────────
 # Set test env vars BEFORE importing any src modules
@@ -26,7 +23,7 @@ os.environ.setdefault("LOG_LEVEL", "WARNING")
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Provide a list of sample LangChain Documents for testing."""
     return [
         Document(
@@ -51,7 +48,7 @@ def sample_documents() -> List[Document]:
 
 
 @pytest.fixture
-def sample_chunks() -> List[Document]:
+def sample_chunks() -> list[Document]:
     """Provide pre-chunked documents with metadata."""
     return [
         Document(

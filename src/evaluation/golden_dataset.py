@@ -8,7 +8,6 @@ automated evaluation.
 
 import json
 import random
-from typing import List
 
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
@@ -69,7 +68,7 @@ class GoldenDatasetGenerator:
         )
         self.prompt = _QA_PROMPT
 
-    def generate(self, output_path: str | None = None) -> List[dict]:
+    def generate(self, output_path: str | None = None) -> list[dict]:
         """Generate the golden dataset and save to JSON."""
         settings = get_settings()
         output_path = output_path or settings.golden_dataset_path
@@ -111,32 +110,26 @@ class GoldenDatasetGenerator:
                         answer = line.replace("ANSWER:", "").strip()
 
                 if question and answer:
-                    dataset.append({
-                        "question": question,
-                        "ground_truth": answer,
-                        "source_chunk": text,
-                        "source_file": metadata.get("filename", "unknown"),
-                    })
-                    logger.info(
-                        "  [%d/%d] Generated Q&A pair", i + 1, sample_size
+                    dataset.append(
+                        {
+                            "question": question,
+                            "ground_truth": answer,
+                            "source_chunk": text,
+                            "source_file": metadata.get("filename", "unknown"),
+                        }
                     )
+                    logger.info("  [%d/%d] Generated Q&A pair", i + 1, sample_size)
                 else:
-                    logger.warning(
-                        "  [%d/%d] Failed to parse LLM output", i + 1, sample_size
-                    )
+                    logger.warning("  [%d/%d] Failed to parse LLM output", i + 1, sample_size)
 
             except Exception:
-                logger.error(
-                    "  [%d/%d] Error generating Q&A", i + 1, sample_size, exc_info=True
-                )
+                logger.error("  [%d/%d] Error generating Q&A", i + 1, sample_size, exc_info=True)
 
         # Save to JSON
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(dataset, f, indent=4, ensure_ascii=False)
 
-        logger.info(
-            "Golden dataset saved: %d pairs → %s", len(dataset), output_path
-        )
+        logger.info("Golden dataset saved: %d pairs → %s", len(dataset), output_path)
         return dataset
 
 

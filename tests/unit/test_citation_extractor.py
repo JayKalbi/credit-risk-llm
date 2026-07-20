@@ -1,7 +1,5 @@
 """Unit tests for the CitationExtractor."""
 
-import pytest
-
 from src.generation.citation_extractor import CitationExtractor
 
 
@@ -13,10 +11,7 @@ class TestCitationExtractor:
 
     def test_extracts_valid_citation(self, sample_sources):
         """Should extract and validate a known citation."""
-        response = (
-            "Apple's revenue was $383.29 billion "
-            "[Source: Apple 10-K.pdf, Chunk: 5]."
-        )
+        response = "Apple's revenue was $383.29 billion [Source: Apple 10-K.pdf, Chunk: 5]."
         result = self.extractor.extract_and_validate(response, sample_sources)
 
         assert len(result["citations"]) == 1
@@ -67,10 +62,7 @@ class TestCitationExtractor:
 
     def test_mixed_valid_and_hallucinated(self, sample_sources):
         """Should correctly identify a mix of valid and fake citations."""
-        response = (
-            "Real [Source: Apple 10-K.pdf, Chunk: 5]. "
-            "Fake [Source: NoFile.pdf, Chunk: 0]."
-        )
+        response = "Real [Source: Apple 10-K.pdf, Chunk: 5]. Fake [Source: NoFile.pdf, Chunk: 0]."
         result = self.extractor.extract_and_validate(response, sample_sources)
 
         assert len(result["citations"]) == 2

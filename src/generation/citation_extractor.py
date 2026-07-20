@@ -7,7 +7,7 @@ to detect hallucinated citations.
 """
 
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 from src.logging_config import get_logger
 
@@ -27,8 +27,8 @@ class CitationExtractor:
     def extract_and_validate(
         self,
         llm_response: str,
-        sources: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        sources: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """
         Extract all citations from the response and validate them.
 
@@ -43,7 +43,7 @@ class CitationExtractor:
               - hallucinated_count: Number of citations referencing
                                    sources not in the retrieved context
         """
-        citations: List[Dict[str, Any]] = []
+        citations: list[dict[str, Any]] = []
         hallucinated_count = 0
 
         matches = _CITATION_PATTERN.findall(llm_response)
@@ -51,28 +51,29 @@ class CitationExtractor:
         for filename, chunk_idx in matches:
             valid_source = None
             for s in sources:
-                if (
-                    s.get("filename") == filename
-                    and str(s.get("chunk_index")) == chunk_idx
-                ):
+                if s.get("filename") == filename and str(s.get("chunk_index")) == chunk_idx:
                     valid_source = s
                     break
 
             if valid_source:
-                citations.append({
-                    "filename": filename,
-                    "chunk_index": int(chunk_idx),
-                    "text_preview": valid_source.get("text_preview"),
-                    "is_hallucinated": False,
-                })
+                citations.append(
+                    {
+                        "filename": filename,
+                        "chunk_index": int(chunk_idx),
+                        "text_preview": valid_source.get("text_preview"),
+                        "is_hallucinated": False,
+                    }
+                )
             else:
                 hallucinated_count += 1
-                citations.append({
-                    "filename": filename,
-                    "chunk_index": int(chunk_idx),
-                    "text_preview": None,
-                    "is_hallucinated": True,
-                })
+                citations.append(
+                    {
+                        "filename": filename,
+                        "chunk_index": int(chunk_idx),
+                        "text_preview": None,
+                        "is_hallucinated": True,
+                    }
+                )
 
         if hallucinated_count:
             logger.warning(

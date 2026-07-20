@@ -23,9 +23,7 @@ def main() -> None:
     """Run the full ingestion pipeline with CLI argument support."""
     settings = get_settings()
 
-    parser = argparse.ArgumentParser(
-        description="Hybrid RAG Engine — Document Ingestion Pipeline"
-    )
+    parser = argparse.ArgumentParser(description="Hybrid RAG Engine — Document Ingestion Pipeline")
     parser.add_argument(
         "--input_dir",
         type=str,
@@ -63,9 +61,7 @@ def main() -> None:
 
     # Step 2: Chunk & Deduplicate
     logger.info("Step 2/3: Chunking & Deduplication")
-    chunker = DocumentChunker(
-        chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap
-    )
+    chunker = DocumentChunker(chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap)
     chunks = chunker.chunk_documents(documents)
 
     # Step 3: Embed & Index (Dense + Sparse)
@@ -75,9 +71,7 @@ def main() -> None:
     embedder.ingest_dense(chunks)
 
     elapsed = time.time() - start_time
-    logger.info(
-        "Pipeline complete. Processed %d chunks in %.2f seconds.", len(chunks), elapsed
-    )
+    logger.info("Pipeline complete. Processed %d chunks in %.2f seconds.", len(chunks), elapsed)
 
 
 if __name__ == "__main__":

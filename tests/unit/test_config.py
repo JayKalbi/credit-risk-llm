@@ -50,6 +50,7 @@ class TestSettings:
             settings = Settings()
             # Override api_key via a new LLMConfig
             from src.config import LLMConfig
+
             settings.llm = LLMConfig()
             if not settings.llm.api_key:
                 with pytest.raises(ValueError, match="GROQ_API_KEY"):

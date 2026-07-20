@@ -8,10 +8,8 @@ logging as Flask before/after request hooks.
 import time
 import uuid
 from collections import defaultdict
-from functools import wraps
-from typing import Any, Dict, Optional
 
-from flask import Flask, Request, g, jsonify, request
+from flask import Flask, g, jsonify, request
 
 from src.config import get_settings
 from src.logging_config import get_logger
@@ -29,7 +27,7 @@ class RateLimiter:
     def __init__(self, max_requests: int = 20, window_seconds: int = 60):
         self.max_requests = max_requests
         self.window_seconds = window_seconds
-        self._requests: Dict[str, list] = defaultdict(list)
+        self._requests: dict[str, list] = defaultdict(list)
 
     def is_allowed(self, client_ip: str) -> bool:
         """Check if a request from the given IP is allowed."""
@@ -37,9 +35,7 @@ class RateLimiter:
         cutoff = now - self.window_seconds
 
         # Prune expired timestamps
-        self._requests[client_ip] = [
-            ts for ts in self._requests[client_ip] if ts > cutoff
-        ]
+        self._requests[client_ip] = [ts for ts in self._requests[client_ip] if ts > cutoff]
 
         if len(self._requests[client_ip]) >= self.max_requests:
             return False
@@ -71,10 +67,10 @@ class AuditLogger:
         request_id: str,
         client_ip: str,
         question: str,
-        answer: Optional[str] = None,
-        sources: Optional[list] = None,
-        latency_ms: Optional[float] = None,
-        error: Optional[str] = None,
+        answer: str | None = None,
+        sources: list | None = None,
+        latency_ms: float | None = None,
+        error: str | None = None,
     ) -> None:
         """Log a complete query lifecycle event."""
         entry = {
@@ -91,8 +87,8 @@ class AuditLogger:
 
 
 # Module-level singletons
-_rate_limiter: Optional[RateLimiter] = None
-_audit_logger: Optional[AuditLogger] = None
+_rate_limiter: RateLimiter | None = None
+_audit_logger: AuditLogger | None = None
 
 
 def get_rate_limiter() -> RateLimiter:
@@ -138,14 +134,14 @@ def register_middleware(app: Flask) -> None:
         # Rate limiting
         client_ip = request.remote_addr or "unknown"
         if not rate_limiter.is_allowed(client_ip):
-            logger.warning(
-                "Rate limit exceeded for IP %s on %s", client_ip, request.path
-            )
+            logger.warning("Rate limit exceeded for IP %s on %s", client_ip, request.path)
             return (
-                jsonify({
-                    "error": "Rate limit exceeded. Please try again later.",
-                    "retry_after_seconds": settings.app.rate_limit_window_seconds,
-                }),
+                jsonify(
+                    {
+                        "error": "Rate limit exceeded. Please try again later.",
+                        "retry_after_seconds": settings.app.rate_limit_window_seconds,
+                    }
+                ),
                 429,
             )
 
@@ -155,10 +151,9 @@ def register_middleware(app: Flask) -> None:
             if data and "question" in data:
                 question = data["question"]
                 if len(question) > settings.app.max_query_length:
+                    max_len = settings.app.max_query_length
                     return (
-                        jsonify({
-                            "error": f"Query too long. Maximum {settings.app.max_query_length} characters.",
-                        }),
+                        jsonify({"error": f"Query too long. Max {max_len} chars."}),
                         400,
                     )
 
@@ -176,9 +171,7 @@ def register_middleware(app: Flask) -> None:
 
         # Rate limit headers
         client_ip = request.remote_addr or "unknown"
-        response.headers["X-RateLimit-Remaining"] = str(
-            rate_limiter.get_remaining(client_ip)
-        )
+        response.headers["X-RateLimit-Remaining"] = str(rate_limiter.get_remaining(client_ip))
 
         # Log request latency
         if hasattr(g, "start_time"):

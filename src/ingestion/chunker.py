@@ -6,7 +6,6 @@ character splitting and removes exact duplicates via SHA-256 hashing.
 """
 
 import hashlib
-from typing import List
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -38,7 +37,7 @@ class DocumentChunker:
             length_function=len,
         )
 
-    def chunk_documents(self, documents: List[Document]) -> List[Document]:
+    def chunk_documents(self, documents: list[Document]) -> list[Document]:
         """Split documents into chunks and deduplicate."""
         logger.info(
             "Splitting %d documents (chunk_size=%d, overlap=%d)",
@@ -64,15 +63,13 @@ class DocumentChunker:
         return unique_chunks
 
     @staticmethod
-    def _deduplicate(chunks: List[Document]) -> List[Document]:
+    def _deduplicate(chunks: list[Document]) -> list[Document]:
         """Remove chunks with identical text content using SHA-256 hashing."""
         seen_hashes: set = set()
-        unique_chunks: List[Document] = []
+        unique_chunks: list[Document] = []
 
         for chunk in chunks:
-            content_hash = hashlib.sha256(
-                chunk.page_content.encode("utf-8")
-            ).hexdigest()
+            content_hash = hashlib.sha256(chunk.page_content.encode("utf-8")).hexdigest()
 
             if content_hash not in seen_hashes:
                 seen_hashes.add(content_hash)
