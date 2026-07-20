@@ -6,7 +6,6 @@ LangChain Document objects while preserving source metadata.
 """
 
 from pathlib import Path
-from typing import List
 
 from langchain_community.document_loaders import (
     PyPDFLoader,
@@ -44,13 +43,13 @@ class MultiFormatDocumentLoader:
     def __init__(self, directory_path: str):
         self.directory_path = Path(directory_path)
 
-    def load(self) -> List[Document]:
+    def load(self) -> list[Document]:
         """Load all supported documents from the configured directory."""
         if not self.directory_path.exists():
             logger.error("Directory does not exist: %s", self.directory_path)
             return []
 
-        documents: List[Document] = []
+        documents: list[Document] = []
         skipped = 0
         errors = 0
 
@@ -81,7 +80,7 @@ class MultiFormatDocumentLoader:
         )
         return documents
 
-    def _load_single_file(self, file_path: Path) -> List[Document]:
+    def _load_single_file(self, file_path: Path) -> list[Document]:
         """Load a single file using the appropriate LangChain loader."""
         ext = file_path.suffix.lower()
         loader_factory = _LOADER_MAP.get(ext)

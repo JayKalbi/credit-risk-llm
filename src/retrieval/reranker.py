@@ -6,8 +6,6 @@ between the query and each document simultaneously, which is far
 more accurate than bi-encoder similarity.
 """
 
-from typing import List
-
 from langchain_core.documents import Document
 from sentence_transformers import CrossEncoder
 
@@ -39,8 +37,8 @@ class CrossEncoderReranker:
         self.model = CrossEncoder(model)
 
     def rerank(
-        self, query: str, documents: List[Document], top_k: int | None = None
-    ) -> List[Document]:
+        self, query: str, documents: list[Document], top_k: int | None = None
+    ) -> list[Document]:
         """
         Score all documents against the query and return the top-k.
 
@@ -55,14 +53,10 @@ class CrossEncoderReranker:
         pairs = [[query, doc.page_content] for doc in documents]
         scores = self.model.predict(pairs)
 
-        for doc, score in zip(documents, scores):
+        for doc, score in zip(documents, scores, strict=False):
             doc.metadata["rerank_score"] = float(score)
 
-        ranked_docs = sorted(
-            documents, key=lambda d: d.metadata["rerank_score"], reverse=True
-        )
+        ranked_docs = sorted(documents, key=lambda d: d.metadata["rerank_score"], reverse=True)
 
-        logger.debug(
-            "Reranked %d candidates → returning top %d", len(documents), k
-        )
+        logger.debug("Reranked %d candidates → returning top %d", len(documents), k)
         return ranked_docs[:k]

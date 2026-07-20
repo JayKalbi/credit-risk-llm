@@ -1,6 +1,5 @@
 """Unit tests for the DocumentChunker."""
 
-import pytest
 from langchain_core.documents import Document
 
 from src.ingestion.chunker import DocumentChunker

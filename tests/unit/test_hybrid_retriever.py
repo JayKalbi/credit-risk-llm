@@ -1,6 +1,5 @@
 """Unit tests for the HybridRetriever's RRF fusion logic."""
 
-import pytest
 from langchain_core.documents import Document
 
 from src.retrieval.hybrid_retriever import HybridRetriever

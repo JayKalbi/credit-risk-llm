@@ -9,7 +9,7 @@ Coordinates the full Retrieval-Augmented Generation pipeline:
 
 import argparse
 import time
-from typing import Any, Dict
+from typing import Any
 
 from src.config import get_settings
 from src.generation.generator import GroundedGenerator
@@ -29,14 +29,10 @@ class RAGChain:
 
     def __init__(self):
         settings = get_settings()
-        self.retriever = HybridRetriever(
-            final_top_k=settings.retrieval.final_top_k
-        )
-        self.generator = GroundedGenerator(
-            temperature=settings.llm.temperature
-        )
+        self.retriever = HybridRetriever(final_top_k=settings.retrieval.final_top_k)
+        self.generator = GroundedGenerator(temperature=settings.llm.temperature)
 
-    def query(self, question: str) -> Dict[str, Any]:
+    def query(self, question: str) -> dict[str, Any]:
         """
         Execute the full RAG pipeline for a given question.
 
@@ -84,12 +80,8 @@ class RAGChain:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Test the End-to-End RAG Chain"
-    )
-    parser.add_argument(
-        "--query", type=str, required=True, help="Question to ask the system"
-    )
+    parser = argparse.ArgumentParser(description="Test the End-to-End RAG Chain")
+    parser.add_argument("--query", type=str, required=True, help="Question to ask the system")
     args = parser.parse_args()
 
     chain = RAGChain()
@@ -104,10 +96,7 @@ if __name__ == "__main__":
     print("=" * 50)
     for source in result["sources"]:
         score = source.get("rerank_score", 0)
-        print(
-            f"  • {source['filename']} (Chunk {source['chunk_index']}, "
-            f"Score: {score:.3f})"
-        )
+        print(f"  • {source['filename']} (Chunk {source['chunk_index']}, Score: {score:.3f})")
     print("\n" + "=" * 50)
     print(" PIPELINE METRICS")
     print("=" * 50)

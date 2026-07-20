@@ -1,8 +1,5 @@
 """Unit tests for the MultiFormatDocumentLoader."""
 
-import pytest
-from pathlib import Path
-
 from src.ingestion.document_loader import MultiFormatDocumentLoader
 
 

@@ -7,8 +7,6 @@ Uses Groq's API (Llama 3.1) with a strict system prompt that enforces:
   - Explicit "I don't know" for unanswerable questions
 """
 
-from typing import List
-
 from langchain_core.documents import Document
 from langchain_core.prompts import PromptTemplate
 from langchain_groq import ChatGroq
@@ -55,9 +53,7 @@ class GroundedGenerator:
         api_key = settings.llm.api_key
 
         if not api_key:
-            logger.warning(
-                "GROQ_API_KEY not set — generation will fail at runtime"
-            )
+            logger.warning("GROQ_API_KEY not set — generation will fail at runtime")
 
         logger.info("Initializing Grounded Generator (Groq %s)", model)
         self.llm = ChatGroq(
@@ -67,7 +63,7 @@ class GroundedGenerator:
         )
         self.prompt_template = _SYSTEM_PROMPT
 
-    def generate(self, question: str, retrieved_docs: List[Document]) -> str:
+    def generate(self, question: str, retrieved_docs: list[Document]) -> str:
         """
         Generate a grounded answer based on retrieved documents.
 
@@ -91,9 +87,7 @@ class GroundedGenerator:
 
         formatted_context = "\n\n".join(context_parts)
 
-        prompt_text = self.prompt_template.format(
-            context=formatted_context, question=question
-        )
+        prompt_text = self.prompt_template.format(context=formatted_context, question=question)
 
         logger.debug("Sending prompt to Groq (%d chars)", len(prompt_text))
         response = self.llm.invoke(prompt_text)
